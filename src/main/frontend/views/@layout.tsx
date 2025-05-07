@@ -1,82 +1,55 @@
-import { Outlet, useLocation, useNavigate } from 'react-router';
-import {
-  AppLayout,
-  Avatar,
-  Icon,
-  MenuBar,
-  MenuBarItemSelectedEvent,
-  ProgressBar,
-  Scroller,
-  SideNav,
-  SideNavItem,
-} from '@vaadin/react-components';
-import { Suspense } from 'react';
-import { createMenuItems } from '@vaadin/hilla-file-router/runtime.js';
+import {createMenuItems, useViewConfig} from '@vaadin/hilla-file-router/runtime.js';
+import {effect, signal} from '@vaadin/hilla-react-signals';
+import {AppLayout, DrawerToggle, Icon, SideNav, SideNavItem} from '@vaadin/react-components';
+import {Suspense, useEffect} from 'react';
+import {Outlet, useLocation, useNavigate} from 'react-router';
 
-function Header() {
-  // TODO Replace with real application logo and name
-  return (
-    <div className="flex gap-m items-center" slot="drawer">
-      <Icon icon="vaadin:cubes" className="text-primary icon-l" />
-      <span className="font-semibold text-l">Honey</span>
-    </div>
-  );
-}
+const documentTitleSignal = signal('');
+effect(() => {
+    document.title = documentTitleSignal.value;
+});
 
-function MainMenu() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  return (
-    <SideNav className="mx-m" onNavigate={({ path }) => path != null && navigate(path)} location={location}>
-      {createMenuItems().map(({ to, icon, title }) => (
-        <SideNavItem path={to} key={to}>
-          {icon && <Icon icon={icon} slot="prefix" />}
-          {title}
-        </SideNavItem>
-      ))}
-    </SideNav>
-  );
-}
-
-function UserMenu() {
-  // TODO Replace with real user information and actions
-  const items = [
-    {
-      component: (
-        <>
-          <Avatar theme="xsmall" name="John Smith" colorIndex={5} className="mr-s" /> John Smith
-        </>
-      ),
-      children: [
-        { text: 'View Profile', action: () => console.log('View Profile') },
-        { text: 'Manage Settings', action: () => console.log('Manage Settings') },
-        { text: 'Logout', action: () => console.log('Logout') },
-      ],
-    },
-  ];
-  const onItemSelected = (event: MenuBarItemSelectedEvent) => {
-    const action = (event.detail.value as any).action;
-    if (action) {
-      action();
-    }
-  };
-  return (
-    <MenuBar theme="tertiary-inline" items={items} onItemSelected={onItemSelected} className="m-m" slot="drawer" />
-  );
-}
+// Publish for Vaadin to use
+(window as any).Vaadin.documentTitleSignal = documentTitleSignal;
 
 export default function MainLayout() {
-  return (
-    <AppLayout primarySection="drawer">
-      <Header />
-      <Scroller slot="drawer">
-        <MainMenu />
-      </Scroller>
-      <UserMenu />
-      <Suspense fallback={<ProgressBar indeterminate={true} className="m-0" />}>
-        <Outlet />
-      </Suspense>
-    </AppLayout>
-  );
+    const currentTitle = useViewConfig()?.title;
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        if (currentTitle) {
+            documentTitleSignal.value = currentTitle;
+        }
+    }, [currentTitle]);
+
+    return (
+        <AppLayout primarySection="drawer">
+            <div slot="drawer" className="flex flex-col justify-between h-full p-m">
+                <header className="flex flex-col gap-m">
+                    <div className="flex gap-m items-center" slot="drawer">
+                        <Icon icon="vaadin:cubes" className="text-primary icon-l"/>
+                        <span className="font-semibold text-l">Honey</span>
+                    </div>
+                    <SideNav onNavigate={({path}) => navigate(path!)} location={location}>
+                        {createMenuItems().map(({to, title, icon}) => (
+                            <SideNavItem path={to} key={to}>
+                                {icon ? <Icon src={icon} slot="prefix"></Icon> : <></>}
+                                {title}
+                            </SideNavItem>
+                        ))}
+                    </SideNav>
+                </header>
+            </div>
+
+            <DrawerToggle slot="navbar" aria-label="Menu toggle"></DrawerToggle>
+            <h1 slot="navbar" className="text-l m-0">
+                {documentTitleSignal}
+            </h1>
+
+            <Suspense>
+                <Outlet/>
+            </Suspense>
+        </AppLayout>
+    );
 }

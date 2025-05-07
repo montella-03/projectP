@@ -1,6 +1,7 @@
-// TODO Replace with your own main view.
 
 import {ViewConfig} from "@vaadin/hilla-file-router/types.js";
+import {Card} from "antd";
+import {Icon} from "@vaadin/react-components";
 
 export const config: ViewConfig = {
     menu: {
@@ -11,7 +12,15 @@ export const config: ViewConfig = {
 export default function MainView() {
     return (
         <main className="p-m">
-            Please select a view from the menu on the left.
+            <Card>
+                <Icon slot="media" icon="lumo:photo" />
+                <div>Lapland is the northern-most region of Finland and an active outdoor destination.</div>
+            </Card>
+
+            <Card>
+                <Icon slot="media" icon="lumo:photo" />
+                <div>Lapland is the northern-most region of Finland and an active outdoor destination.</div>
+            </Card>
         </main>
     );
 }
