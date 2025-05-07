@@ -16,7 +16,7 @@ import { createMenuItems } from '@vaadin/hilla-file-router/runtime.js';
 function Header() {
   // TODO Replace with real application logo and name
   return (
-    <div className="flex p-m gap-m items-center" slot="drawer">
+    <div className="flex gap-m items-center" slot="drawer">
       <Icon icon="vaadin:cubes" className="text-primary icon-l" />
       <span className="font-semibold text-l">Honey</span>
     </div>
